@@ -180,14 +180,79 @@ namespace MordhauCheat_2._0
         private void Autoblock_Tick(object sender, EventArgs e)
         {
             if (Autoblock.Checked)
-                { 
-                    int offset = 0;
-                    int Playeroffset = this.mem.ReadInt(Offsets.PlayerSizeOffset, "") - 1;
-                    string Player = Offsets.Player_Array + ",0";
-                    Vector3 PlayerLocation;
-                    PlayerLocation.X = mem.ReadFloat(Player + ",280," + Offsets.player_x, "", true);
-                    PlayerLocation.Y = mem.ReadFloat(Player + ",280," + Offsets.player_y, "", true);
-                    PlayerLocation.Z = mem.ReadFloat(Player + ",280," + Offsets.player_z, "", true);
+{ 
+    int offset = 0;
+    int Playeroffset = this.mem.ReadInt(Offsets.PlayerSizeOffset, "") - 1;
+    string Player = Offsets.Player_Array + ",0";
+    Vector3 PlayerLocation;
+    PlayerLocation.X = mem.ReadFloat(Player + ",280," + Offsets.player_x, "", true);
+    PlayerLocation.Y = mem.ReadFloat(Player + ",280," + Offsets.player_y, "", true);
+    PlayerLocation.Z = mem.ReadFloat(Player + ",280," + Offsets.player_z, "", true);
+    Debug.WriteLine(PlayerLocation); // heres the cutoff
+
+    // 1. Cleanly close the Autoblock action block, the timer method, and the Menu class
+    } // Closes: if (Autoblock.Checked)
+} // Closes: private void Autoblock_Tick(object sender, EventArgs e)
+} // Closes: public partial class Menu : Form
+
+
+// 2. Safely place the new InputSimulator class standalone within the namespace boundary
+public class InputSimulator
+{
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct INPUT
+    {
+        public uint type; 
+        public MOUSEKEYBDSTRUCT u;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    private struct MOUSEKEYBDSTRUCT
+    {
+        [FieldOffset(0)] public MOUSEINPUT mi;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MOUSEINPUT
+    {
+        public int dx;
+        public int dy;
+        public uint mouseData;
+        public uint dwFlags;
+        public uint time;
+        public IntPtr dwExtraInfo;
+    }
+
+    private const uint INPUT_MOUSE = 0;
+    private const uint MOUSEEVENTF_RIGHTDOWN = 0x0008;
+    private const uint MOUSEEVENTF_RIGHTUP = 0x0010;
+
+    public static void SimulateRightClick()
+    {
+        INPUT[] inputs = new INPUT[2];
+
+        inputs[0] = new INPUT
+        {
+            type = INPUT_MOUSE,
+            u = new MOUSEKEYBDSTRUCT { mi = new MOUSEINPUT { dwFlags = MOUSEEVENTF_RIGHTDOWN } }
+        };
+
+        inputs[1] = new INPUT
+        {
+            type = INPUT_MOUSE,
+            u = new MOUSEKEYBDSTRUCT { mi = new MOUSEINPUT { dwFlags = MOUSEEVENTF_RIGHTUP } }
+        };
+
+        SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
+    }
+}
+
+// 3. Close the outermost namespace container at the very end of the file
+} // Closes: namespace_2._0
+
                     //Debug.WriteLine(PlayerLocation);
                     for (int i = 0; i < Playeroffset; i++)
                     {
