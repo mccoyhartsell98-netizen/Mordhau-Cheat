@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,16 +13,21 @@ namespace MordhauCheat_2._0
 
         static Offsets() { }
 
-
+        // The exact dynamically scanned base pointer from Dumper-7
         public const string GWorld = "Mordhau-Win64-Shipping.exe+0x59200F8";
 
-        // main
-        public static string PlayerController = GWorld + ",180,38,0,30";
+        // UE 4.26 updated engine base layout: 
+        // GWorld -> OwningGameInstance (0x1A8) -> LocalPlayers (0x38) -> PlayerController (0x30)
+        public static string PlayerController = GWorld + ",1A8,38,30";
         public static string AGameStateBase = GWorld + ",120";
-        public static string PlayerCameraManager = PlayerController + ",2B8";
+        
+        // CameraManager shifted from 2B8 to 2C0 in UE 4.26
+        public static string PlayerCameraManager = PlayerController + ",2C0"; 
         public static string APlayerState = PlayerController + ",228";
         public static string ACharacter = PlayerController + ",260";
-        public static string Pawn = PlayerController + ",2A0";
+        
+        // AcknowledgedPawn shifted from 2A0 to 2A8 in UE 4.26
+        public static string Pawn = PlayerController + ",2A8"; 
         public static string UMordhauMotion = Pawn + ",B08";
 
         public static string CheckIfStab = ",B08,1108";
@@ -40,7 +45,6 @@ namespace MordhauCheat_2._0
         public static string CharacterMovement = Pawn + ",288";
 
         // visual
-
         public static string forcecoloroverride = Pawn + ",D8C";
 
         public static string folorteamA_R = GWorld + ",120" + ",6B8" + ",0";
@@ -57,8 +61,7 @@ namespace MordhauCheat_2._0
         public static string smokesmoothfield = Pawn + ",518";
         public static string smokesmooth = Pawn + ",51C";
 
-        //movment
-
+        // movement
         public static string cam_pitch = PlayerController + ",250,F30";
         public static string cam_yaw =   PlayerController + ",250,F34";
         public static string cam_x =     PlayerController + ",250,F18";
@@ -73,7 +76,7 @@ namespace MordhauCheat_2._0
         public static string NoSlowdownWhenChased = CharacterMovement + ",C49";
         public static string MinTimeChasing = CharacterMovement + ",CB4";
 
-        //weapon
+        // weapon
         public static string RightHandEquipment = Pawn + ",11F8";
         public static string LeftHandEquipment = Pawn + ",1200";
 
@@ -83,11 +86,11 @@ namespace MordhauCheat_2._0
         public static string turncapx = Pawn + ",8C4";
         public static string turncapy = Pawn + ",8CC";
 
-        //combat
+        // combat
         public static string MotionSystemComponenet = Pawn + ",688";
 
         public static string EasyParryDuration = ",F0" + ",494";
-        public static string LastParryMotion = Pawn + ",F0" + ",688"  ;
+        public static string LastParryMotion = Pawn + ",F0" + ",688";
 
         public static string LastAttackMotion = MotionSystemComponenet + ",108";
         public static string LastFeintMotion = MotionSystemComponenet + ",100";
@@ -105,12 +108,12 @@ namespace MordhauCheat_2._0
 
         public static string IgnoreTurnCap = Pawn + ",8D4";
 
-        //ranged
+        // ranged
         public static string RangedDrawTime = LeftHandEquipment + ",CEC";
         public static string RangedReleaseTime = LeftHandEquipment + ",CF4";
         public static string RangedReloadTime = LeftHandEquipment + ",D14";
 
-        //playerstate
+        // playerstate
         public static string IsAlive = APlayerState + ",368";
         public static string AfkTimer = PlayerController + ",A28";
         public static string nextbox = PlayerController + ",CD1";
