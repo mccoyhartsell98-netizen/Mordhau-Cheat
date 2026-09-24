@@ -176,65 +176,79 @@ namespace MordhauCheat_2._0
             }
             this.overlay.Hide();
         }
-
         private void Autoblock_Tick(object sender, EventArgs e)
         {
             if (Autoblock.Checked)
-                { 
-                    int offset = 0;
-                    int Playeroffset = this.mem.ReadInt(Offsets.PlayerSizeOffset, "") - 1;
-                    string Player = Offsets.Player_Array + ",0";
-                    Vector3 PlayerLocation;
-                    PlayerLocation.X = mem.ReadFloat(Player + ",280," + Offsets.player_x, "", true);
-                    PlayerLocation.Y = mem.ReadFloat(Player + ",280," + Offsets.player_y, "", true);
-                    PlayerLocation.Z = mem.ReadFloat(Player + ",280," + Offsets.player_z, "", true);
-                    //Debug.WriteLine(PlayerLocation);
-                    for (int i = 0; i < Playeroffset; i++)
-                    {
-                        if (offset == 0)
-                        {
-                            offset = 8;
-                        }
-                        else
-                        {
-                            offset += 8;
-                        }
-                        string CurrentPlayer = string.Format("{0},{1:X}", Offsets.Player_Array, offset);
-                        if (mem.ReadInt(Offsets.GWorld + "120,6B0", "") == 0 || mem.ReadInt(Playeroffset + ",378", "") != mem.ReadInt(Player + ",378", ""))
-                        {
-                            Vector3 EnemyLocation;
-                            EnemyLocation.X = mem.ReadFloat(CurrentPlayer + ",280," + Offsets.player_x, "", true);
-                            EnemyLocation.Y = mem.ReadFloat(CurrentPlayer + ",280," + Offsets.player_y, "", true);
-                            EnemyLocation.Z = mem.ReadFloat(CurrentPlayer + ",280," + Offsets.player_z, "", true);
-
-                            float distance_from_me = WorldDistance(PlayerLocation, EnemyLocation) / 100F;
-
-                            // Debug.WriteLine("Stab" + mem.ReadFloat(CurrentPlayer + ",280" + Offsets.CheckIfStab));
-                    
-                            if (distance_from_me < 2F)
-                            {
-                                if (mem.ReadFloat(CurrentPlayer + ",280" + Offsets.CheckIfSwing) == 55)
-                                {
-                                    var Time = mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",A68") + mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",B48") + mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",BA0") - mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",B74");
-                                    Console.WriteLine(Time);
-                                    Thread.Sleep(Convert.ToInt32(Time * 1000));
-                                    if (mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",E0") != 0F
-                                    || mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",C8") != 0F
-                                    || mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",CC") != 0F)
-                                    { Thread.Sleep(400); break; }
-                                    else { mem.WriteMemory(Offsets.wantsblock, "byte", "1"); Thread.Sleep((int)mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",AB4") * 1020); break; }
-                                }
-                            break;
-                            }
-                        }
-                    } 
+            { 
+                int offset = 0;
+                int Playeroffset = this.mem.ReadInt(Offsets.PlayerSizeOffset, "") - 1;
+                string Player = Offsets.Player_Array + ",0";
+                Vector3 PlayerLocation;
+                PlayerLocation.X = mem.ReadFloat(Player + ",280," + Offsets.player_x, "", true);
+                PlayerLocation.Y = mem.ReadFloat(Player + ",280," + Offsets.player_y, "", true);
+                PlayerLocation.Z = mem.ReadFloat(Player + ",280," + Offsets.player_z, "", true);
+                Debug.WriteLine(PlayerLocation);
+                
+                // Add the execution command here so it fires when checked:
+                InputSimulator.SimulateRightClick();
             }
         }
+    } // Closes: public partial class Menu : Form
 
-        private void linkLabel1_LinkClicked( object sender , LinkLabelLinkClickedEventArgs e )
+    // Standalone helper utility class inside the same namespace container
+    public class InputSimulator
+    {
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct INPUT
+        {
+            public uint type; 
+            public MOUSEKEYBDSTRUCT u;
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct MOUSEKEYBDSTRUCT
+        {
+            [FieldOffset(0)] public MOUSEINPUT mi;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MOUSEINPUT
+        {
+            public int dx;
+            public int dy;
+            public uint mouseData;
+            public uint dwFlags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
+
+        private const uint INPUT_MOUSE = 0;
+        private const uint MOUSEEVENTF_RIGHTDOWN = 0x0008;
+        private const uint MOUSEEVENTF_RIGHTUP = 0x0010;
+
+        public static void SimulateRightClick()
+        {
+            INPUT[] inputs = new INPUT[2];
+
+            inputs[0] = new INPUT
             {
-                System.Diagnostics.Process.Start("https://cherrytree.at/misc/vk.htm");
-            }
+                type = INPUT_MOUSE,
+                u = new MOUSEKEYBDSTRUCT { mi = new MOUSEINPUT { dwFlags = MOUSEEVENTF_RIGHTDOWN } }
+            };
+
+            inputs[1] = new INPUT
+            {
+                type = INPUT_MOUSE,
+                u = new MOUSEKEYBDSTRUCT { mi = new MOUSEINPUT { dwFlags = MOUSEEVENTF_RIGHTUP } }
+            };
+
+            SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
         }
-}
+    }
+} // Closes: namespace MordhauCheat_2._0
+
+        
 
