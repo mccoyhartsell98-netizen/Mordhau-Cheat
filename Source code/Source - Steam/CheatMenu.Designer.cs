@@ -221,7 +221,7 @@
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(120, 17);
             this.label3.TabIndex = 13;
-            this.label3.Text = "Made by philip\r\n";
+            this.label3.Text = "Made by Dark\r\n";
             // 
             // afklabel
             // 
@@ -291,7 +291,7 @@
             // Autoblock
             // 
             this.Autoblock.AutoSize = true;
-            this.Autoblock.Enabled = false;
+            this.Autoblock.Enabled = true;
             this.Autoblock.Location = new System.Drawing.Point(25, 411);
             this.Autoblock.Name = "Autoblock";
             this.Autoblock.Size = new System.Drawing.Size(306, 36);
