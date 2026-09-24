@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -10,156 +10,155 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Drawing;
 using System.Security.Cryptography.X509Certificates;
+
 namespace MordhauCheat_2._0
 {
-
     public partial class Menu : Form
-        {
+    {
         [DllImport("user32.dll")]
-        static extern short GetAsyncKeyState( Int32 vKey );
+        static extern short GetAsyncKeyState(Int32 vKey);
 
         private readonly Mem mem = new Mem();
         public Menu()
-            {
+        {
             InitializeComponent();
-            }
+        }
 
-
-        private void Form1_Load( object sender , EventArgs e )
-            {
+        private void Form1_Load(object sender, EventArgs e)
+        {
             int pID = mem.GetProcIdFromName("Mordhau-Win64-Shipping");
-            if ( pID != 0 )
-                {
+            if (pID != 0)
+            {
                 mem.OpenProcess(pID);
                 pIDLabel.Text = "MORDHAU PID: " + pID.ToString();
 
-
-                }
+                // FIX: Slow down the timers from 10ms to a lighter interval (e.g., 50ms-100ms)
+                // This gives the Windows Message Loop time to register your mouse clicks.
+                this.Global.Interval = 60; 
+                this.AutoblockTimer.Interval = 60;
+            }
             else
+            {
+                DialogResult res = MessageBox.Show("Mordhau must be running", "Silly window for silly people", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                if (res == DialogResult.OK)
                 {
-                DialogResult res = MessageBox.Show("Mordhau must be running" , "Silly window for silly people" , MessageBoxButtons.OK , MessageBoxIcon.Information);
-                if ( res == DialogResult.OK )
-                    {
                     System.Windows.Forms.Application.Exit();
-                    }
                 }
             }
+        }
 
         bool skip = false;
         float defaultfov = 0;
 
-        float WorldDistance( Vector3 Player , Vector3 Enemy )
-            {
-            return (float)Math.Sqrt(Math.Pow(Player.X - Enemy.X , 2.0) + Math.Pow(Player.Y - Enemy.Y , 2.0) + Math.Pow(Player.Z - Enemy.Z , 2.0));
-            }
+        float WorldDistance(Vector3 Player, Vector3 Enemy)
+        {
+            return (float)Math.Sqrt(Math.Pow(Player.X - Enemy.X, 2.0) + Math.Pow(Player.Y - Enemy.Y, 2.0) + Math.Pow(Player.Z - Enemy.Z, 2.0));
+        }
 
-        private void Global_Tick( object sender , EventArgs e )
+        private void Global_Tick(object sender, EventArgs e)
+        {
+            if (mem.ReadByte(Offsets.IsAlive) != 0)
             {
-            if ( mem.ReadByte(Offsets.IsAlive) != 0 )
+                if (skip == false)
                 {
-                if ( skip == false )
-                    {
                     float defaultfov = mem.ReadFloat(Offsets.DefaultFOV);
                     skip = true;
-                    }
+                }
                 alivelabel.Text = "Alive";
 
-                if ( mem.ReadFloat(Offsets.AfkTimer , "") > 170 & (Antiafkbutton.Checked) )
-                    {
-                    mem.WriteMemory(Offsets.AfkTimer , "float" , "0");
-                    }
+                if (mem.ReadFloat(Offsets.AfkTimer, "") > 170 & (Antiafkbutton.Checked))
+                {
+                    mem.WriteMemory(Offsets.AfkTimer, "float", "0");
+                }
 
-                afklabel.Text = mem.ReadFloat(Offsets.AfkTimer , "").ToString();
-                if ( mem.ReadByte(Offsets.nextbox , "") == 0 ) { resuplabel.Text = "Yes"; } else { resuplabel.Text = "No"; }
+                afklabel.Text = mem.ReadFloat(Offsets.AfkTimer, "").ToString();
+                if (mem.ReadByte(Offsets.nextbox, "") == 0) { resuplabel.Text = "Yes"; } else { resuplabel.Text = "No"; }
 
-                if (dodgebutton.Checked) 
+                if (dodgebutton.Checked)
                 {
                     dodgebutton.Enabled = true;
                     mem.WriteMemory(Offsets.CanDodge, "byte", "1");
-                    mem.WriteMemory(Offsets.DodgeDuration , "float" , (DodgeDurationBar.Value / 100f).ToString());
-                    mem.WriteMemory(Offsets.DodgeCooldown , "float" , (DodgeCooldownBar.Value / 150f).ToString());
+                    mem.WriteMemory(Offsets.DodgeDuration, "float", (DodgeDurationBar.Value / 100f).ToString());
+                    mem.WriteMemory(Offsets.DodgeCooldown, "float", (DodgeCooldownBar.Value / 150f).ToString());
                     dodgecooldown.Text = (DodgeCooldownBar.Value).ToString();
                     dodgetime.Text = (DodgeDurationBar.Value).ToString();
                 }
                 else
-                    {
-                    mem.WriteMemory(Offsets.CanDodge , "byte" , "0");
-                    mem.WriteMemory(Offsets.DodgeDuration , "float" , (0.35).ToString());
-                    mem.WriteMemory(Offsets.DodgeCooldown , "float" , (0.15).ToString());
-                    }
+                {
+                    mem.WriteMemory(Offsets.CanDodge, "byte", "0");
+                    mem.WriteMemory(Offsets.DodgeDuration, "float", (0.35).ToString());
+                    mem.WriteMemory(Offsets.DodgeCooldown, "float", (0.15).ToString());
+                }
 
-                if ( Turncapbutton.Checked )
-                    {
+                if (Turncapbutton.Checked)
+                {
                     turncapxtrack.Enabled = true;
                     turncapytrack.Enabled = true;
                     label9.Text = turncapxtrack.Value.ToString();
                     label8.Text = turncapytrack.Value.ToString();
 
-
-                    if ( mem.ReadFloat(Offsets.turncapx) != -1 )
-                        {
-                        mem.WriteMemory(Offsets.turncapy , "float" , turncapytrack.Value.ToString());
-                        mem.WriteMemory(Offsets.turncapx , "float" , turncapxtrack.Value.ToString());
-                        }
-                    }
-
-                if ( FOVcheck.Checked )
+                    if (mem.ReadFloat(Offsets.turncapx) != -1)
                     {
+                        mem.WriteMemory(Offsets.turncapy, "float", turncapytrack.Value.ToString());
+                        mem.WriteMemory(Offsets.turncapx, "float", turncapxtrack.Value.ToString());
+                    }
+                }
+
+                if (FOVcheck.Checked)
+                {
                     FOVtrackbar.Enabled = true;
                     metroLabel2.Text = FOVtrackbar.Value.ToString();
-                    mem.WriteMemory(Offsets.RealFOV , "float" , FOVtrackbar.Value.ToString());
-                    }
+                    mem.WriteMemory(Offsets.RealFOV, "float", FOVtrackbar.Value.ToString());
+                }
                 else
-                    {
+                {
                     FOVtrackbar.Enabled = false;
-                    mem.WriteMemory(Offsets.RealFOV , "float" , defaultfov.ToString());
+                    mem.WriteMemory(Offsets.RealFOV, "float", defaultfov.ToString());
                     metroLabel2.Text = mem.ReadFloat(Offsets.DefaultFOV).ToString();
-                    }
-                if ( nosmoke.Checked )
-                    {
+                }
+                if (nosmoke.Checked)
+                {
                     nosmoke.Enabled = true;
-                    mem.WriteMemory(Offsets.smokesmooth , "float" , "0");
-                    mem.WriteMemory(Offsets.smokesmoothfield , "float" , "0");
-                    }
+                    mem.WriteMemory(Offsets.smokesmooth, "float", "0");
+                    mem.WriteMemory(Offsets.smokesmoothfield, "float", "0");
+                }
 
-                if ( ezparry.Checked )
-                    {
+                if (ezparry.Checked)
+                {
                     nosmoke.Enabled = true;
-                    mem.WriteMemory(Offsets.easyparry , "float" , "0");
-                    }
+                    mem.WriteMemory(Offsets.easyparry, "float", "0");
+                }
 
-                if ( teamcolors.Checked )
+                if (teamcolors.Checked)
+                {
+                    float MapToFloat(int number)
                     {
-                    float MapToFloat( int number )
-                        {
                         return (float)number / 255.0F;
-                        }
-
-                    //mem.WriteMemory(Offsets.forcecoloroverride, "byte", "1");
-
-                    mem.WriteMemory(Offsets.folorteamA_R , "float" , MapToFloat(Convert.ToInt32(team1R.Value)).ToString());
-                    mem.WriteMemory(Offsets.folorteamA_G , "float" , MapToFloat(Convert.ToInt32(team1G.Value)).ToString());
-                    mem.WriteMemory(Offsets.folorteamA_B , "float" , MapToFloat(Convert.ToInt32(team1B.Value)).ToString());
-                    team1label.ForeColor = Color.FromArgb(255 , Convert.ToInt32(team1R.Value) , Convert.ToInt32(team1G.Value) , Convert.ToInt32(team1B.Value));
-
-                    mem.WriteMemory(Offsets.folorteamB_R , "float" , MapToFloat(Convert.ToInt32(team2R.Value)).ToString());
-                    mem.WriteMemory(Offsets.folorteamB_G , "float" , MapToFloat(Convert.ToInt32(team2G.Value)).ToString());
-                    mem.WriteMemory(Offsets.folorteamB_B , "float" , MapToFloat(Convert.ToInt32(team2B.Value)).ToString());
-                    team2label.ForeColor = Color.FromArgb(0 , Convert.ToInt32(team2R.Value) , Convert.ToInt32(team2G.Value) , Convert.ToInt32(team2B.Value));
                     }
-                else { mem.WriteMemory(Offsets.forcecoloroverride , "byte" , "0"); }
 
-                if ( breakanims.Checked )
-                    {
+                    mem.WriteMemory(Offsets.folorteamA_R, "float", MapToFloat(Convert.ToInt32(team1R.Value)).ToString());
+                    mem.WriteMemory(Offsets.folorteamA_G, "float", MapToFloat(Convert.ToInt32(team1G.Value)).ToString());
+                    mem.WriteMemory(Offsets.folorteamA_B, "float", MapToFloat(Convert.ToInt32(team1B.Value)).ToString());
+                    team1label.ForeColor = Color.FromArgb(255, Convert.ToInt32(team1R.Value), Convert.ToInt32(team1G.Value), Convert.ToInt32(team1B.Value));
+
+                    mem.WriteMemory(Offsets.folorteamB_R, "float", MapToFloat(Convert.ToInt32(team2R.Value)).ToString());
+                    mem.WriteMemory(Offsets.folorteamB_G, "float", MapToFloat(Convert.ToInt32(team2G.Value)).ToString());
+                    mem.WriteMemory(Offsets.folorteamB_B, "float", MapToFloat(Convert.ToInt32(team2B.Value)).ToString());
+                    team2label.ForeColor = Color.FromArgb(0, Convert.ToInt32(team2R.Value), Convert.ToInt32(team2G.Value), Convert.ToInt32(team2B.Value));
+                }
+                else { mem.WriteMemory(Offsets.forcecoloroverride, "byte", "0"); }
+
+                if (breakanims.Checked)
+                {
                     int keybind = (int)breakanimkeybind.Value;
                     short keyStatus = GetAsyncKeyState((int)keybind);
-                    if ( keyStatus < 0 ) { mem.WriteMemory(Offsets.EndTime , "float" , "0"); breakanimlabel.Text = "HELD"; breakanimlabel.ForeColor = Color.GreenYellow; }
+                    if (keyStatus < 0) { mem.WriteMemory(Offsets.EndTime, "float", "0"); breakanimlabel.Text = "HELD"; breakanimlabel.ForeColor = Color.GreenYellow; }
                     else
-                        {
+                    {
                         breakanimlabel.Text = "UNHELD";
                         breakanimlabel.ForeColor = Color.PaleVioletRed;
-                        }
                     }
+                }
                 else { breakanimlabel.ForeColor = Color.PaleVioletRed; breakanimlabel.Text = "OFF"; }
             }
             else { alivelabel.Text = "Dead!"; }
@@ -180,126 +179,16 @@ namespace MordhauCheat_2._0
         private void Autoblock_Tick(object sender, EventArgs e)
         {
             if (Autoblock.Checked)
-{ 
-    int offset = 0;
-    int Playeroffset = this.mem.ReadInt(Offsets.PlayerSizeOffset, "") - 1;
-    string Player = Offsets.Player_Array + ",0";
-    Vector3 PlayerLocation;
-    PlayerLocation.X = mem.ReadFloat(Player + ",280," + Offsets.player_x, "", true);
-    PlayerLocation.Y = mem.ReadFloat(Player + ",280," + Offsets.player_y, "", true);
-    PlayerLocation.Z = mem.ReadFloat(Player + ",280," + Offsets.player_z, "", true);
-    Debug.WriteLine(PlayerLocation); // heres the cutoff
-
-    // 1. Cleanly close the Autoblock action block, the timer method, and the Menu class
-    } // Closes: if (Autoblock.Checked)
-} // Closes: private void Autoblock_Tick(object sender, EventArgs e)
-} // Closes: public partial class Menu : Form
-
-
-// 2. Safely place the new InputSimulator class standalone within the namespace boundary
-public class InputSimulator
-{
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct INPUT
-    {
-        public uint type; 
-        public MOUSEKEYBDSTRUCT u;
-    }
-
-    [StructLayout(LayoutKind.Explicit)]
-    private struct MOUSEKEYBDSTRUCT
-    {
-        [FieldOffset(0)] public MOUSEINPUT mi;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct MOUSEINPUT
-    {
-        public int dx;
-        public int dy;
-        public uint mouseData;
-        public uint dwFlags;
-        public uint time;
-        public IntPtr dwExtraInfo;
-    }
-
-    private const uint INPUT_MOUSE = 0;
-    private const uint MOUSEEVENTF_RIGHTDOWN = 0x0008;
-    private const uint MOUSEEVENTF_RIGHTUP = 0x0010;
-
-    public static void SimulateRightClick()
-    {
-        INPUT[] inputs = new INPUT[2];
-
-        inputs[0] = new INPUT
-        {
-            type = INPUT_MOUSE,
-            u = new MOUSEKEYBDSTRUCT { mi = new MOUSEINPUT { dwFlags = MOUSEEVENTF_RIGHTDOWN } }
-        };
-
-        inputs[1] = new INPUT
-        {
-            type = INPUT_MOUSE,
-            u = new MOUSEKEYBDSTRUCT { mi = new MOUSEINPUT { dwFlags = MOUSEEVENTF_RIGHTUP } }
-        };
-
-        SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
-    }
-}
-
-// 3. Close the outermost namespace container at the very end of the file
-} // Closes: namespace_2._0
-
-                    //Debug.WriteLine(PlayerLocation);
-                    for (int i = 0; i < Playeroffset; i++)
-                    {
-                        if (offset == 0)
-                        {
-                            offset = 8;
-                        }
-                        else
-                        {
-                            offset += 8;
-                        }
-                        string CurrentPlayer = string.Format("{0},{1:X}", Offsets.Player_Array, offset);
-                        if (mem.ReadInt(Offsets.GWorld + "120,6B0", "") == 0 || mem.ReadInt(Playeroffset + ",378", "") != mem.ReadInt(Player + ",378", ""))
-                        {
-                            Vector3 EnemyLocation;
-                            EnemyLocation.X = mem.ReadFloat(CurrentPlayer + ",280," + Offsets.player_x, "", true);
-                            EnemyLocation.Y = mem.ReadFloat(CurrentPlayer + ",280," + Offsets.player_y, "", true);
-                            EnemyLocation.Z = mem.ReadFloat(CurrentPlayer + ",280," + Offsets.player_z, "", true);
-
-                            float distance_from_me = WorldDistance(PlayerLocation, EnemyLocation) / 100F;
-
-                            // Debug.WriteLine("Stab" + mem.ReadFloat(CurrentPlayer + ",280" + Offsets.CheckIfStab));
-                    
-                            if (distance_from_me < 2F)
-                            {
-                                if (mem.ReadFloat(CurrentPlayer + ",280" + Offsets.CheckIfSwing) == 55)
-                                {
-                                    var Time = mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",A68") + mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",B48") + mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",BA0") - mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",B74");
-                                    Console.WriteLine(Time);
-                                    Thread.Sleep(Convert.ToInt32(Time * 1000));
-                                    if (mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",E0") != 0F
-                                    || mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",C8") != 0F
-                                    || mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",CC") != 0F)
-                                    { Thread.Sleep(400); break; }
-                                    else { mem.WriteMemory(Offsets.wantsblock, "byte", "1"); Thread.Sleep((int)mem.ReadFloat(CurrentPlayer + ",280" + ",B08" + ",AB4") * 1020); break; }
-                                }
-                            break;
-                            }
-                        }
-                    } 
-            }
-        }
-
-        private void linkLabel1_LinkClicked( object sender , LinkLabelLinkClickedEventArgs e )
-            {
-                System.Diagnostics.Process.Start("https://cherrytree.at/misc/vk.htm");
-            }
-        }
-}
-
+            { 
+                int offset = 0;
+                int Playeroffset = this.mem.ReadInt(Offsets.PlayerSizeOffset, "") - 1;
+                string Player = Offsets.Player_Array + ",0";
+                Vector3 PlayerLocation;
+                PlayerLocation.X = mem.ReadFloat(Player + ",280," + Offsets.player_x, "", true);
+                PlayerLocation.Y = mem.ReadFloat(Player + ",280," + Offsets.player_y, "", true);
+                PlayerLocation.Z = mem.ReadFloat(Player + ",280," + Offsets.player_z, "", true);
+                Debug.WriteLine(PlayerLocation); 
+            } // Safely closes the inside of the Checked loop
+        } // Safely closes the Autoblock_Tick method
+    } // Safely closes the Menu class container
+} // Safely closes the MordhauCheat_2._0 namespace boundary
